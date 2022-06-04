@@ -1,0 +1,40 @@
+{
+    "name": "crate/core",
+    "type": "crate-module",
+    "version": "0.1.0",
+    "description": "The core system and primary connection to the underlying Citrus Application Framework for the Crate CMS.",
+    "keywords": [
+        "crate",
+        "core",
+        "module",
+        "cms"
+    ],
+    "homepage": "https://crate.md/module/@crate/core",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "rat.md",
+            "email": "info@crate.md",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.0.0",
+        "crate/citrus": "0.1.0",
+        "crate/composer": "^0.1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Crate\\Core\\": "src/"
+        },
+        "files": [
+            "src/functions.php"
+        ]
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    }
+}
