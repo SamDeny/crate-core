@@ -3,6 +3,11 @@
 namespace Crate\Core\Classes;
 
 use Crate\Core\Http\RouteCollector;
+use Crate\Core\Parser\INIParser;
+use Crate\Core\Parser\JSONParser;
+use Crate\Core\Parser\YAMLParser;
+use DirectoryIterator;
+use LimeExtra\Helper\YAML;
 
 class Module 
 {
@@ -27,6 +32,41 @@ class Module
      * @var array
      */
     protected array $data;
+
+    /**
+     * Module Configuration array
+     *
+     * @var array
+     */
+    protected array $config = [];
+
+    /**
+     * Module Factories array
+     *
+     * @var array
+     */
+    protected array $factories = [];
+
+    /**
+     * Module Services array
+     *
+     * @var array
+     */
+    protected array $services = [];
+
+    /**
+     * Module Commands array
+     *
+     * @var array
+     */
+    protected array $commands = [];
+
+    /**
+     * Module Routes data
+     *
+     * @var mixed
+     */
+    protected mixed $routes = null;
 
     /**
      * Module Cache State
@@ -105,63 +145,138 @@ class Module
     /**
      * Register a Configuration directory or specific file.
      *
-     * @param string $filepath
-     * @param string|null $alias
+     * @param string $filepath The filepath to the config directory or to the
+     *               specific file to load.
+     * @param string|null $alias The alias when filepath points to a specific
+     *                    config file, otherwise null.
      * @return void
      */
     public function configurable(string $filepath, ?string $alias = null)
     {
+        $configpath = $this->root . DIRECTORY_SEPARATOR . $filepath;
+        
+        // Loop directory
+        if (is_dir($configpath)) {
+            $handle = new DirectoryIterator($configpath);
+            foreach ($handle AS $file) {
+                if (!$file->isFile()) {
+                    continue;;
+                }
+                $this->configurable(
+                    $filepath . DIRECTORY_SEPARATOR . $file->getBasename(),
+                    substr($file->getFilename(), 0, -strlen($file->getExtension())-1)
+                );
+            }
+            return;
+        }
 
+        // Set Format & Alias
+        $format = pathinfo($filepath, PATHINFO_EXTENSION);
+        if (empty($alias)) {
+            $alias = substr(basename($filepath), 0, -strlen($format)-1);
+        }
+
+        // Load File
+        $config = [];
+        switch ($format) {
+            case 'php':
+                $config = include $configpath;
+                break;
+            case 'json':
+                $config = (new JSONParser)->parseFile($configpath);
+                break;
+            case 'yaml':
+                $config = (new YAMLParser)->parseFile($configpath);
+                break;
+            case 'ini':
+                $config = (new INIParser)->parseFile($configpath);
+                break;
+        }
+
+        // Set Configuration
+        $this->config[$alias] = $config;
     }
 
     /**
-     * Register Citrus Factories.
+     * Receive or Register Plain Configurations
      *
-     * @param array $factories
-     * @return void
+     * @param ?array $configs An array with all alias => config pairs to set 
+     *               or nothing to receive the currently available configs.
+     * @return array|void
      */
-    public function factories(array $factories)
+    public function configs(array $configs = null)
     {
-
+        if ($configs === null) {
+            return $this->config;
+        } else {
+            $this->configs = array_merge($this->configs, $configs);
+        }
     }
 
     /**
-     * Register Citrus Services.
+     * Receive or Register Citrus Factories.
      *
-     * @param array $services
-     * @return void
+     * @param ?array $factories An array with all alias => factory pairs to set 
+     *               or nothing to receive the currently available factories.
+     * @return array|void
      */
-    public function services(array $services)
+    public function factories(array $factories = null)
     {
-
+        if ($factories === null) {
+            return $this->factories;
+        } else {
+            $this->factories = array_merge($this->factories, $factories);
+        }
     }
 
     /**
-     * Register Citrus Commands.
+     * Receive or Register Citrus Services.
      *
-     * @param array $services
-     * @return void
+     * @param ?array $factories An array with all alias => service pairs to set 
+     *               or nothing to receive the currently available services.
+     * @return array|void
      */
-    public function commands(array $commands)
+    public function services(array $services = null)
     {
+        if ($services === null) {
+            return $this->services;
+        } else {
+            $this->services = array_merge($this->services, $services);
+        }
+    }
 
+    /**
+     * Receive or Register Citrus Commands.
+     *
+     * @param ?array $factories An array with all alias => command pairs to set 
+     *               or nothing to receive the currently available commands.
+     * @return array|void
+     */
+    public function commands(array $commands = null)
+    {
+        if ($commands === null) {
+            return $this->commands;
+        } else {
+            $this->commands = array_merge($this->commands, $commands);
+        }
     }
 
     /**
      * Register Module Routes.
      *
-     * @param string|\Closure $routes
+     * @param null|string|\Closure $routes
      * @return void
      */
-    public function routes(string|\Closure $routes)
+    public function routes(null|string|\Closure $routes = null)
     {
-        if (is_string($routes)) {
-            $path = $this->root . DIRECTORY_SEPARATOR . $routes;
-            citrus(function(RouteCollector $collector) use ($path) {
-                require_once $path;
-            });
+        if (is_null($routes)) {
+            return $this->routes;
         } else {
-            
+            if (is_string($routes)) {
+                $this->routes = $this->root . DIRECTORY_SEPARATOR . $routes;
+            } else {
+                $this->routes = $routes;
+            }
         }
     }
 

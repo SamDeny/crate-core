@@ -18,7 +18,7 @@ module(function(\Crate\Core\Classes\Module $module) {
     // Since we're using a composer.json file within this module, we don't 
     // have to set the basic module data, but we can still add some extra 
     // flavour (adapt some details). Using $module->data = [] will merge the 
-    // passed information with the already provided one (does not overwrite!!).
+    // passed information with the already provided one.
     $module->data = [
         'status'                => 'alpha',
 
@@ -37,7 +37,7 @@ module(function(\Crate\Core\Classes\Module $module) {
 
 
     // This module provides some configuration files in the ./config folder.
-    // Crate should know about them, so your end-users are able to configure 
+    // Crate should know about them, so the end-users are able to configure 
     // your module without touching your source files.
     // PS.: You can use YAML, JSON, INI or PHP for your configuration files. 
     $module->configurable('config');
@@ -78,7 +78,7 @@ module(function(\Crate\Core\Classes\Module $module) {
 
 
     // Now, we'have to declare the first basic routes, which will be available 
-    // within the Crate ecosystem. The routes, to handle the above services.
+    // within the Crate ecosystem.
     $module->routes('routes.php');
 
 
@@ -95,9 +95,9 @@ module(function(\Crate\Core\Classes\Module $module) {
     // citrus() are cached on Production envrionments, regardless if your 
     // disable the Modules caching system or not!
     citrus()->registerServices([
-        \Citrus\Router\Collector::class     => \Crate\Core\Http\RouteCollector::class,
         \Citrus\Http\Request::class         => \Crate\Core\Http\Request::class,
-        \Citrus\Http\Response::class        => \Crate\Core\Http\Response::class
+        \Citrus\Http\Response::class        => \Crate\Core\Http\Response::class,
+        \Citrus\Router\Collector::class     => \Crate\Core\Http\RouteCollector::class
     ]);
 
 });

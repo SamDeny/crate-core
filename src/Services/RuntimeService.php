@@ -2,11 +2,12 @@
 
 namespace Crate\Core\Services;
 
-use Citrus\Contracts\Runtime;
+use Citrus\Contracts\RuntimeInterface;
+use Citrus\Events\Event;
 use Citrus\Framework\Application;
 use Crate\Core\Classes\ModuleRegistry;
 
-class RuntimeService implements Runtime
+class RuntimeService implements RuntimeInterface
 {
 
     /**
@@ -56,23 +57,77 @@ class RuntimeService implements Runtime
     }
 
     /**
-     * @inheritDoc
+     * Checks if Crate is installed
+     *
+     * @return boolean
      */
-    public function init(): void
+    public function isInstalled(): bool
     {
-        $this->registry->init();
-        $this->registry->load('@crate/core');
-
-        // Register Module Registry
-
-        // Load Additional Modules
+        return file_exists($this->application->getPath('data', '.installed'));
     }
 
     /**
      * @inheritDoc
      */
-    public function finish(): void
+    public function bootstrap(): void
     {
+        $this->registry->init();
+        $this->registry->load('@crate/core');
+
+        // Load Other Modules
+        if ($this->isinstalled()) {
+
+        }
+
+        // Setup Modules
+        foreach ($this->registry->getModules() AS $module) {
+            if (!$module['loaded']) {
+                continue;
+            }
+
+            // Only inject installed plugins AND @crate/core
+            $object = $module['instance'];
+            if (!$module['installed'] && $object->id !== '@crate/core') {
+                continue;
+            }
+
+            // Set Configurations
+            $this->application->getConfigurator()->setConfigurations(
+                $object->configs()
+            );
+
+            // Set Factories
+            $this->application->registerFactories(
+                $object->factories()
+            );
+
+            // Set Services
+            $this->application->registerServices(
+                $object->services()
+            );
+
+            // Insert Console Commands
+            //@todo
+            //$this->application->registerCommands(
+            //    $module->commands()
+            //);
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function beforeFinish(): void
+    {
+
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function afterFinish(): void
+    {
+        
     }
 
 }

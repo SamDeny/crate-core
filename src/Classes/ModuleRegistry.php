@@ -2,12 +2,20 @@
 
 namespace Crate\Core\Classes;
 
+use Citrus\Events\AfterFinishEvent;
 use Citrus\Framework\Application;
 use Crate\Core\Exceptions\CrateException;
 use Crate\Core\Parser\JSONParser;
 
 class ModuleRegistry 
 {
+
+    /**
+     * Citrus Application
+     *
+     * @var Application
+     */
+    protected Application $application;
 
     /**
      * Module Root Path
@@ -42,7 +50,18 @@ class ModuleRegistry
             throw new CrateException('The module path does not exist!');
         }
 
+        $this->application = $application;
         $this->root = $root;
+    }
+
+    /**
+     * Get all available Moduless
+     *
+     * @return array
+     */
+    public function getModules(): array
+    {
+        return $this->modules;
     }
 
     /**
@@ -99,10 +118,13 @@ class ModuleRegistry
                 'namespace' => $namespace,
                 'module'    => $module,
                 'path'      => $path,
+                'instance'  => null,
                 'loaded'    => false,
-                'module'    => null
+                'installed' => null
             ];
         }
+
+        $this->application->getEventManager()->listen(AfterFinishEvent::class, [$this, 'attach'], 1000);
     }
 
     /**
@@ -163,31 +185,66 @@ class ModuleRegistry
         }
 
         // Load Module
-        $internal['module'] = new Module($internal['path'], $id, $composer ?? []);
-        call_user_func($callback, $internal['module']);
-        $internal['module']->cacheModule();
+        $internal['instance'] = new Module($internal['path'], $id, $composer ?? []);
+        call_user_func($callback, $internal['instance']);
+        $internal['instance']->cacheModule();
     }
 
     /**
-     * Undocumented function
+     * After Finish Event
      *
-     * @param string $module
-     * @return boolean
+     * @param AfterFinishEvent $event
+     * @return void
      */
-    public function isEnabled(string $module): bool
+    public function attach(AfterFinishEvent $event)
     {
-        return false;
+        foreach ($this->getModules() AS $module) {
+            if (!$module['loaded']) {
+                continue;
+            }
+
+            // Only inject installed plugins AND @crate/core
+            $object = $module['instance'];
+            if (!$module['installed'] && $object->id !== '@crate/core') {
+                continue;
+            }
+
+            if (($routes = $object->routes()) === null) {
+                continue;
+            }
+
+            if (is_callable($routes)) {
+                call_user_func($routes);
+            } else {
+                require $routes;
+            }
+        }
     }
 
     /**
-     * Undocumented function
+     * Check if a module is available (regardless if it is installed or not).
      *
-     * @param string $module
+     * @param string $id
      * @return boolean
      */
-    public function isDisabled(string $module): bool
+    public function isAvailable(string $id): bool
     {
-        return false;
+        return array_key_exists($id, $this->modules);
+    }
+
+    /**
+     * Check if a module is installed.
+     *
+     * @param string $id
+     * @return boolean
+     */
+    public function isInstalled(string $id): bool
+    {
+        if (array_key_exists($id, $this->modules)) {
+            return $this->modules[$id]['installed'];
+        } else {
+            return false;
+        }
     }
 
 }
