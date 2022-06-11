@@ -81,23 +81,4 @@ module(function(\Crate\Core\Classes\Module $module) {
     // within the Crate ecosystem.
     $module->routes('routes.php');
 
-
-    //
-    //  -- THE FOLLOWING CODE MODIFIES CITRUS ... NOT CRATE --
-    //
-
-    // Our crate/core package overwrites Citrus' Request, Response and 
-    // RouteCollector classes to provide additional functions. We can tell 
-    // Citrus about using those classes instead. This function should be used 
-    // very rarely, otherwise there may be conflicts between the modules.
-    //
-    // Keep in mind, that services and factories registered directly with
-    // citrus() are cached on Production envrionments, regardless if your 
-    // disable the Modules caching system or not!
-    citrus()->registerServices([
-        \Citrus\Http\Request::class         => \Crate\Core\Http\Request::class,
-        \Citrus\Http\Response::class        => \Crate\Core\Http\Response::class,
-        \Citrus\Router\Collector::class     => \Crate\Core\Http\RouteCollector::class
-    ]);
-
 });

@@ -2,7 +2,7 @@
 
 namespace Crate\Core\Contracts;
 
-interface DatabaseDriver
+interface DriverInterface
 {
 
 }

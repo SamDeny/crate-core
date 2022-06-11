@@ -9,6 +9,6 @@ if (!function_exists('module')) {
      */
     function module(\Closure $callback)
     {
-        return citrus()->getRuntimeService()->getModuleRegistry()->register($callback);
+        
     }
 }

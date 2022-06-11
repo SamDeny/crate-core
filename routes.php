@@ -1,7 +1,11 @@
 <?php declare(strict_types=1);
 
-use Crate\Core\Http\RouteCollector;
+use Citrus\Router\Router;
 
-citrus(function (RouteCollector $collector) {
+citrus(function (Router $router) {
     var_dump($collector);
+
+    $collector->get('/', function() {
+        echo 'test';
+    });
 });

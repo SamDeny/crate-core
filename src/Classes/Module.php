@@ -2,7 +2,7 @@
 
 namespace Crate\Core\Classes;
 
-use Crate\Core\Http\RouteCollector;
+use Crate\Core\Router\Collector;
 use Crate\Core\Parser\INIParser;
 use Crate\Core\Parser\JSONParser;
 use Crate\Core\Parser\YAMLParser;
