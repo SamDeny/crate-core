@@ -2,7 +2,8 @@
 
 namespace Crate\Core\Contracts;
 
-use Psr\Http\Message\ResponseInterface;
+use Citrus\Http\Request;
+use Citrus\Http\Response;
 
 /**
  * The RestFindController declares an additional and completely optional REST
@@ -14,14 +15,14 @@ use Psr\Http\Message\ResponseInterface;
  * you can also stay with the list method, if you're cool with GET requests 
  * only, otherwise take this. 
  */
-interface RestFindController
+interface RestFindControllerContract
 {
 
     /**
      * GET|POST /[route]/[identifier]
      *
-     * @return ResponseInterface
+     * @return Response
      */
-    public function find(): ResponseInterface;
+    public function find(Request $request): Response;
 
 }

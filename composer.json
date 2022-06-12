@@ -20,8 +20,13 @@
     ],
     "require": {
         "php": "^8.0.0",
-        "crate/citrus": "0.1.0",
-        "crate/composer": "^0.1.0"
+        "ext-json": "*",
+        "ext-mbstring": "*",
+        "ext-openssl": "*",
+        "crate/citrus": "^0.1.0"
+    },
+    "suggest": {
+        "mongodb/mongodb": "The MongoDB package and extension is required when the MongoDB driver should be used."
     },
     "autoload": {
         "psr-4": {

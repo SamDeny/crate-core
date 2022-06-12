@@ -2,7 +2,9 @@
 
 namespace Crate\Core\Contracts;
 
-use Psr\Http\Message\ResponseInterface;
+use Citrus\Http\Request;
+use Citrus\Http\Response;
+
 
 /**
  * The RestBulkController declares an additional and completely optional REST
@@ -24,28 +26,31 @@ use Psr\Http\Message\ResponseInterface;
  * in one go. That's pretty useful, and can also be called using the DELETE 
  * method, since nobody said, that you cannot send a body on DELETE.
  */
-interface RestBulkController
+interface RestBulkControllerContract
 {
 
     /**
      * POST /[route]/bulkGet
      *
-     * @return ResponseInterface
+     * @param Request $request
+     * @return Response
      */
-    public function bulkGet(): ResponseInterface;
+    public function bulkGet(Request $request): Response;
 
     /**
      * POST|PUT|PATCH /[route]/bulkPost
      *
-     * @return ResponseInterface
+     * @param Request $request
+     * @return Response
      */
-    public function bulkPost(): ResponseInterface;
+    public function bulkPost(Request $request): Response;
 
     /**
      * POST|DELETE /[route]/bulkDelete
      *
-     * @return ResponseInterface
+     * @param Request $request
+     * @return Response
      */
-    public function bulkDelete(): ResponseInterface;
+    public function bulkDelete(Request $request): Response;
 
 }

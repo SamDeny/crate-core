@@ -13,7 +13,22 @@ class Connection
         
     }
 
-    public function select()
+    public function getDriverType()
+    {
+
+    }
+
+    public function getDriver()
+    {
+
+    }
+
+    public function find()
+    {
+
+    }
+
+    public function findOne()
     {
 
     }
@@ -23,7 +38,7 @@ class Connection
 
     }
 
-    public function insertOrReplace(string $table, array $values)
+    public function replace(string $table, array $values)
     {
 
     }

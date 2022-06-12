@@ -1,16 +1,22 @@
 <?php declare(strict_types=1);
 
-namespace Crate\Core\Classes;
+namespace Crate\Core\Modules;
 
-use Crate\Core\Router\Collector;
+use Citrus\Framework\Application;
 use Crate\Core\Parser\INIParser;
 use Crate\Core\Parser\JSONParser;
 use Crate\Core\Parser\YAMLParser;
 use DirectoryIterator;
-use LimeExtra\Helper\YAML;
 
 class Module 
 {
+
+    /**
+     * Citrus Application
+     *
+     * @var Application
+     */
+    protected Application $app;
 
     /**
      * Module Root Path
@@ -82,8 +88,9 @@ class Module
      * @param string $id
      * @param array $data
      */
-    public function __construct(string $root, string $id, array $data)
+    public function __construct(Application $citrus, string $root, string $id, array $data)
     {
+        $this->app = $citrus;
         $this->root = $root;
         $this->id = $id;
         $this->data = $data;
@@ -153,48 +160,7 @@ class Module
      */
     public function configurable(string $filepath, ?string $alias = null)
     {
-        $configpath = $this->root . DIRECTORY_SEPARATOR . $filepath;
-        
-        // Loop directory
-        if (is_dir($configpath)) {
-            $handle = new DirectoryIterator($configpath);
-            foreach ($handle AS $file) {
-                if (!$file->isFile()) {
-                    continue;;
-                }
-                $this->configurable(
-                    $filepath . DIRECTORY_SEPARATOR . $file->getBasename(),
-                    substr($file->getFilename(), 0, -strlen($file->getExtension())-1)
-                );
-            }
-            return;
-        }
-
-        // Set Format & Alias
-        $format = pathinfo($filepath, PATHINFO_EXTENSION);
-        if (empty($alias)) {
-            $alias = substr(basename($filepath), 0, -strlen($format)-1);
-        }
-
-        // Load File
-        $config = [];
-        switch ($format) {
-            case 'php':
-                $config = include $configpath;
-                break;
-            case 'json':
-                $config = (new JSONParser)->parseFile($configpath);
-                break;
-            case 'yaml':
-                $config = (new YAMLParser)->parseFile($configpath);
-                break;
-            case 'ini':
-                $config = (new INIParser)->parseFile($configpath);
-                break;
-        }
-
-        // Set Configuration
-        $this->config[$alias] = $config;
+        $this->app->loadConfiguration($filepath, $alias);
     }
 
     /**

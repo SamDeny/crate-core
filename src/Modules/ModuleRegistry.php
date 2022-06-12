@@ -1,13 +1,12 @@
 <?php declare(strict_types=1);
 
-namespace Crate\Core\Classes;
+namespace Crate\Core\Modules;
 
-use Citrus\Events\AfterFinishEvent;
 use Citrus\Framework\Application;
+use Citrus\Contracts\SingletonContract;
 use Crate\Core\Exceptions\CrateException;
-use Crate\Core\Parser\JSONParser;
 
-class ModuleRegistry 
+class ModuleRegistry implements SingletonContract
 {
 
     /**
@@ -46,7 +45,7 @@ class ModuleRegistry
      */
     public function __construct(Application $application)
     {
-        if (($root = realpath($application->getPath('modules'))) === false) {
+        if (($root = realpath($application->resolvePath(':modules'))) === false) {
             throw new CrateException('The module path does not exist!');
         }
 
@@ -123,8 +122,6 @@ class ModuleRegistry
                 'installed' => null
             ];
         }
-
-        $this->application->getEventManager()->listen(AfterFinishEvent::class, [$this, 'attach'], 1000);
     }
 
     /**
@@ -185,40 +182,9 @@ class ModuleRegistry
         }
 
         // Load Module
-        $internal['instance'] = new Module($internal['path'], $id, $composer ?? []);
+        $internal['instance'] = new Module($this->application, $internal['path'], $id, $composer ?? []);
         call_user_func($callback, $internal['instance']);
         $internal['instance']->cacheModule();
-    }
-
-    /**
-     * After Finish Event
-     *
-     * @param AfterFinishEvent $event
-     * @return void
-     */
-    public function attach(AfterFinishEvent $event)
-    {
-        foreach ($this->getModules() AS $module) {
-            if (!$module['loaded']) {
-                continue;
-            }
-
-            // Only inject installed plugins AND @crate/core
-            $object = $module['instance'];
-            if (!$module['installed'] && $object->id !== '@crate/core') {
-                continue;
-            }
-
-            if (($routes = $object->routes()) === null) {
-                continue;
-            }
-
-            if (is_callable($routes)) {
-                call_user_func($routes);
-            } else {
-                require $routes;
-            }
-        }
     }
 
     /**

@@ -2,7 +2,8 @@
 
 namespace Crate\Core\Contracts;
 
-use Psr\Http\Message\ResponseInterface;
+use Citrus\Http\Request;
+use Citrus\Http\Response;
 
 /**
  * The RestPatchController declares an additional and completely optional REST
@@ -14,14 +15,15 @@ use Psr\Http\Message\ResponseInterface;
  * request. Crate itself does not force you to ensure a fully resource body on 
  * PUT / POST, so you omit this method if you would like.
  */
-interface RestPatchController
+interface RestPatchControllerContract
 {
 
     /**
      * PATCH /[route]/[identifier]
      *
-     * @return ResponseInterface
+     * @param Request $request
+     * @return Response
      */
-    public function patch($identifier): ResponseInterface;
+    public function patch(Request $request, array $args = []): Response;
 
 }

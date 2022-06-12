@@ -29,69 +29,95 @@ return [
      * Below you will find all native provided database drivers. You can add and 
      * use as many database connections as you need, also with the same driver. 
      * Just use a unique identifier and provide the correct details.
+     * 
+     * The configuration below is based on the used driver, check crate's docs 
+     * for more information about those.
      */
     'drivers' => [
 
         /**
-         * SQLite Driver -> Depends on PHP's \SQLite
+         * SQLite Driver -> Depends on PHP's \SQLite extension (ext-sqlite)
          */
         'sqlite'        => [
-            'provider'  => \Crate\Database\Provider\SQLite::class,
-            'path'      => env('DATABASE_PATH', '~/storage/crate/database.sqlite'),
-            'pragmas'   => [
+
+            // Driver class which extends DriverInterface
+            'provider'      => \Crate\Database\Drivers\SQLite::class,
+
+            // Driver-specific configuration, which are passed as named 
+            // arguments to it's constructor
+            'path'          => env('DATABASE_PATH', '~/storage/crate/database.sqlite'),
+            'encryptionKey' => null,
+            'pragmas'       => [
                 'foreign_keys'  => env('DATABASE_FOREIGN_KEYS', true),
                 'journal_mode'  => env('DATABASE_JOURNAL_MODE', 'WAL')
             ]
         ],
 
         /**
-         * MongoDB Driver -> Depends on mongodb/mongodb package
+         * MongoDB Driver -> Depends on ext-mongodb and the mongodb/mongodb package
          */
         'mongodb'       => [
-            'provider'  => \Crate\Database\Provider\MongoDB::class,
+
+            // Driver class which extends DriverInterface
+            'provider'      => \Crate\Database\Provider\MongoDB::class,
+
+            // Driver-specific configuration, which are passed as named 
+            // arguments to it's constructor
+            'dns'           => env('DATABASE_DNS', 'mongodb://localhost:27017'),
+            'database'      => env('DATABASE_NAME', 'crate'),
+            'dnsOptions'    => [ ],
+            'driverOptions' => [ ]
         ],
 
         /**
          * MySQLi Driver -> Depends on PHP's \MySQLi
          */
         'mysqli'        => [
+
+            // Driver class which extends DriverInterface
             'provider'  => \Crate\Database\Provider\MySQLi::class,
+
+            // Driver-specific configuration, which are passed as named 
+            // arguments to it's constructor
             'hostname'  => env('DATABASE_HOST', 'localhost'),
             'port'      => env('DATABASE_PORT', 5432),
             'username'  => env('DATABASE_USERNAME', 'root'),
             'password'  => env('DATABASE_PASSWORD', ''),
             'database'  => env('DATABASE_NAME', 'crate'),
-            'socket'    => env('DATABASE_SOCKET', null)
+            'socket'    => env('DATABASE_SOCKET', '')
+        ],
+
+        /**
+         * PostgreSQL Driver -> Depends on PHP's pgsql_* functions
+         */
+        'postgres'      => [
+            'info'      => "We don't support PostgreSQL at the moment, but we plan to do so in the future!",
+            'provider'  => null
         ],
 
         /**
          * PDO MySQL Driver -> Depends on PHP's PDO | PDO-MYSQL extension
          */
         'pdo-mysql'     => [
-            'provider'  => \Crate\Database\Provider\PDOMySQL::class,
-            'hostname'  => env('DATABASE_HOST', 'localhost'),
-            'port'      => env('DATABASE_PORT', 5432),
-            'username'  => env('DATABASE_USERNAME', 'root'),
-            'password'  => env('DATABASE_PASSWORD', ''),
-            'database'  => env('DATABASE_NAME', 'crate'),
-            'socket'    => env('DATABASE_SOCKET', null),
-            'dsn'       => env('DATABASE_DSN', null)
+            'info'      => "We don't support PDO at the moment, but we plan to do so in the future!",
+            'provider'  => null
         ],
 
         /**
          * PDO SQLite Driver -> Depends on PHP's PDO | PDO-SQLITE extension
          */
         'pdo-sqlite'    => [
-            'provider'  => \Crate\Database\Provider\PDOSQLite::class,
-            'path'      => env('DATABASE_PATH', '~/storage/crate/database.sqlite'),
-            'pragmas'   => [
-                'foreign_keys'  => env('DATABASE_FOREIGN_KEYS', true),
-                'journal_mode'  => env('DATABASE_JOURNAL_MODE', 'WAL')
-            ]
+            'info'      => "We don't support PDO at the moment, but we plan to do so in the future!",
+            'provider'  => null
         ],
 
-        // We currently don't support PostgreSQL, but we plan to do so in the future.
-
+        /**
+         * PDO PostgreSQL Driver -> Depends on PHP's PDO | PDO-PGSQL extension
+         */
+        'pdo-pgsql'     => [
+            'info'      => "We don't support PDO at the moment, but we plan to do so in the future!",
+            'provider'  => null
+        ]
     ],
 
 ];

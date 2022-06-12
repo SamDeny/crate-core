@@ -2,7 +2,8 @@
 
 namespace Crate\Core\Contracts;
 
-use Psr\Http\Message\ResponseInterface;
+use Citrus\Http\Request;
+use Citrus\Http\Response;
 
 /**
  * The RESTController declares the REST design used by Crate. Crate describes 
@@ -73,52 +74,59 @@ use Psr\Http\Message\ResponseInterface;
  * in one go. That's pretty useful, and can also be called using the DELETE 
  * method, since nobody said, that you cannot send a body on DELETE.
  */
-interface RestController extends Controller
+interface RestControllerContract extends ControllerContract
 {
 
     /**
      * GET /[route]
      *
-     * @return ResponseInterface
+     * @param Request $request
+     * @return Response
      */
-    public function list(): ResponseInterface;
+    public function list(Request $request): Response;
 
     /**
      * GET /[route]/[identifier]
      *
-     * @return ResponseInterface
+     * @param Request $request
+     * @param array $args
+     * @return Response
      */
-    public function get($identifier): ResponseInterface;
+    public function get(Request $request, array $args = []): Response;
 
     /**
      * POST /[route]
      *
-     * @return ResponseInterface
+     * @param Request $request
+     * @return Response
      */
-    public function create(): ResponseInterface;
+    public function create(Request $request): Response;
 
     /**
      * POST /[route]/[identifier]
      *
-     * @param mixed $identifier
-     * @return ResponseInterface
+     * @param Request $request
+     * @param array $args
+     * @return Response
      */
-    public function update($identifier): ResponseInterface;
+    public function update(Request $request, array $args): Response;
 
     /**
      * PUT /[route]/:uuid?
      *
-     * @param mixed $identifier
-     * @return ResponseInterface
+     * @param Request $request
+     * @param array $args
+     * @return Response
      */
-    public function createOrUpdate($identifier = null): ResponseInterface;
+    public function createOrUpdate(Request $request, array $args = []): Response;
 
     /**
      * DELETE /[users]/:uuid
      *
-     * @param mixed $identifier
-     * @return ResponseInterface
+     * @param Request $request
+     * @param array $args
+     * @return Response
      */
-    public function delete($identifier): ResponseInterface;
+    public function delete(Request $request, array $args): Response;
 
 }

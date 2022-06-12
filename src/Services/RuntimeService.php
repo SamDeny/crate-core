@@ -2,12 +2,15 @@
 
 namespace Crate\Core\Services;
 
-use Citrus\Contracts\RuntimeInterface;
-use Citrus\Events\Event;
 use Citrus\Framework\Application;
-use Crate\Core\Classes\ModuleRegistry;
+use Citrus\Router\Router;
+use Crate\Core\Contracts\RestBulkControllerContract;
+use Crate\Core\Contracts\RestControllerContract;
+use Crate\Core\Contracts\RestFindControllerContract;
+use Crate\Core\Contracts\RestPatchControllerContract;
+use Crate\Core\Modules\ModuleRegistry;
 
-class RuntimeService implements RuntimeInterface
+class RuntimeService
 {
 
     /**
@@ -31,19 +34,44 @@ class RuntimeService implements RuntimeInterface
     {
         $this->application = $application;
 
-        // Set primary directories
-        $this->application->setDirectories([
-            'data'          => '$/storage/data',
-            'modules'       => '$/modules',
-            'uploads'       => '$/storage/uploads',
-            'workspaces'    => '$/storage/workspaces'
+        // Set Router Definitions
+        Router::addDefinitions([
+            RestControllerContract::class => [
+                ['GET',     '/',        'list'],
+                ['GET',     '/{id:id}?','get'],
+                ['POST',    '/',        'create'],
+                ['POST',    '/{id:id}', 'update'],
+                ['PUT',     '/{id:id}?','createOrUpdate'],
+                ['DELETE',  '/{id:id}', 'delete'],
+            ],
+            RestPatchControllerContract::class => [
+                ['PATCH',   '/{id:id}', 'patch']
+            ],
+            RestBulkControllerContract::class => [
+                ['POST',    '/bulkGet', 'bulkGet'],
+                [
+                    ['POST','PUT','PATCH'],
+                    '/bulkPost',
+                    'bulkPost'
+                ],
+                [
+                    ['POST','DELETE'],
+                    '/bulkDelete',
+                    'bulkDelete'
+                ]
+            ],
+            RestFindControllerContract::class => [
+                [
+                    ['GET', 'POST'],
+                    '/find',
+                    '/find'
+                ]
+            ]
         ]);
         
         // Register Module Registry
         $this->registry = new ModuleRegistry($this->application);
-        $this->application->registerServices([
-            ModuleRegistry::class   => $this->registry
-        ]);
+        $this->application->getContainer()->set(ModuleRegistry::class, $this->registry);
     }
 
     /**
@@ -63,7 +91,7 @@ class RuntimeService implements RuntimeInterface
      */
     public function isInstalled(): bool
     {
-        return file_exists($this->application->getPath('data', '.installed'));
+        return file_exists($this->application->resolvePath(':data', '.installed'));
     }
 
     /**
@@ -77,40 +105,6 @@ class RuntimeService implements RuntimeInterface
         // Load Other Modules
         if ($this->isinstalled()) {
 
-        }
-
-        // Setup Modules
-        foreach ($this->registry->getModules() AS $module) {
-            if (!$module['loaded']) {
-                continue;
-            }
-
-            // Only inject installed plugins AND @crate/core
-            $object = $module['instance'];
-            if (!$module['installed'] && $object->id !== '@crate/core') {
-                continue;
-            }
-
-            // Set Configurations
-            $this->application->getConfigurator()->setConfigurations(
-                $object->configs()
-            );
-
-            // Set Factories
-            $this->application->registerFactories(
-                $object->factories()
-            );
-
-            // Set Services
-            $this->application->registerServices(
-                $object->services()
-            );
-
-            // Insert Console Commands
-            //@todo
-            //$this->application->registerCommands(
-            //    $module->commands()
-            //);
         }
     }
 

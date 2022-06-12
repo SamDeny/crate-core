@@ -2,11 +2,15 @@
 
 namespace Crate\Core\Database\Drivers;
 
-use Crate\Core\Contracts\DatabaseDriver;
+use Crate\Core\Contracts\DriverInterface;
+use Crate\Core\Exceptions\DriverException;
 
-class PostgreSQL implements DatabaseDriver
+class PostgreSQL implements DriverInterface
 {
 
-    // PostgreSQL is currently not supported but will be in the future.
+    public function __construct()
+    {
+        throw new DriverException('The PostgreSQL driver is not available in this version.');
+    }
 
 }

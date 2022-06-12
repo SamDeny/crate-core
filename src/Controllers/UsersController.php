@@ -2,14 +2,18 @@
 
 namespace Crate\Core\Controllers;
 
-use Crate\Core\Contracts\RestController;
-use Crate\Core\Contracts\RestBulkController;
-use Crate\Core\Contracts\RestFindController;
-use Crate\Core\Contracts\RestPatchController;
-use Crate\Core\Http\Response;
-use Psr\Http\Message\ResponseInterface;
+use Citrus\Http\Request;
+use Citrus\Http\Response;
+use Crate\Core\Contracts\RestBulkControllerContract;
+use Crate\Core\Contracts\RestControllerContract;
+use Crate\Core\Contracts\RestFindControllerContract;
+use Crate\Core\Contracts\RestPatchControllerContract;
 
-class UsersController implements RestController, RestBulkController, RestFindController, RestPatchController
+class UsersController implements 
+    RestControllerContract, 
+    RestBulkControllerContract, 
+    RestFindControllerContract, 
+    RestPatchControllerContract
 {
 
     /**
@@ -23,9 +27,10 @@ class UsersController implements RestController, RestBulkController, RestFindCon
     /**
      * GET|POST /users
      *
-     * @return ResponseInterface
+     * @param Request $request
+     * @return Response
      */
-    public function find(): ResponseInterface
+    public function find(Request $request): Response
     {
         $response = new Response();
         return $response;
@@ -34,20 +39,24 @@ class UsersController implements RestController, RestBulkController, RestFindCon
     /**
      * GET /[route]
      *
-     * @return ResponseInterface
+     * @param Request $request
+     * @return Response
      */
-    public function list(): ResponseInterface
+    public function list(Request $request): Response
     {
         $response = new Response();
+        $response->setJSON(['test']);
         return $response;
     }
 
     /**
      * GET /[route]/[identifier]
      *
-     * @return ResponseInterface
+     * @param Request $request
+     * @param array $args
+     * @return Response
      */
-    public function get($identifier): ResponseInterface
+    public function get(Request $request, array $args = []): Response
     {
         $response = new Response();
         return $response;
@@ -56,9 +65,10 @@ class UsersController implements RestController, RestBulkController, RestFindCon
     /**
      * POST /[route]
      *
-     * @return ResponseInterface
+     * @param Request $request
+     * @return Response
      */
-    public function create(): ResponseInterface
+    public function create(Request $request): Response
     {
         $response = new Response();
         return $response;
@@ -67,10 +77,11 @@ class UsersController implements RestController, RestBulkController, RestFindCon
     /**
      * POST /[route]/[identifier]
      *
-     * @param mixed $identifier
-     * @return ResponseInterface
+     * @param Request $request
+     * @param array $args
+     * @return Response
      */
-    public function update($identifier): ResponseInterface
+    public function update(Request $request, array $args): Response
     {
         $response = new Response();
         return $response;
@@ -79,9 +90,11 @@ class UsersController implements RestController, RestBulkController, RestFindCon
     /**
      * PATCH /[route]/[identifier]
      *
-     * @return ResponseInterface
+     * @param Request $request
+     * @param array $args
+     * @return Response
      */
-    public function patch($identifier): ResponseInterface
+    public function patch(Request $request, array $args = []): Response
     {
         $response = new Response();
         return $response;
@@ -90,10 +103,11 @@ class UsersController implements RestController, RestBulkController, RestFindCon
     /**
      * PUT /[route]/:uuid?
      *
-     * @param mixed $identifier
-     * @return ResponseInterface
+     * @param Request $request
+     * @param array $args
+     * @return Response
      */
-    public function createOrUpdate($identifier = null): ResponseInterface
+    public function createOrUpdate(Request $request, array $args = []): Response
     {
         $response = new Response();
         return $response;
@@ -102,10 +116,11 @@ class UsersController implements RestController, RestBulkController, RestFindCon
     /**
      * DELETE /[users]/:uuid
      *
-     * @param mixed $identifier
-     * @return ResponseInterface
+     * @param Request $request
+     * @param array $args
+     * @return Response
      */
-    public function delete($identifier): ResponseInterface
+    public function delete(Request $request, array $args): Response
     {
         $response = new Response();
         return $response;
@@ -114,9 +129,10 @@ class UsersController implements RestController, RestBulkController, RestFindCon
     /**
      * POST /[route]/bulkGet
      *
-     * @return ResponseInterface
+     * @param Request $request
+     * @return Response
      */
-    public function bulkGet(): ResponseInterface
+    public function bulkGet(Request $request): Response
     {
         $response = new Response();
         return $response;
@@ -125,9 +141,10 @@ class UsersController implements RestController, RestBulkController, RestFindCon
     /**
      * POST|PUT|PATCH /[route]/bulkPost
      *
-     * @return ResponseInterface
+     * @param Request $request
+     * @return Response
      */
-    public function bulkPost(): ResponseInterface
+    public function bulkPost(Request $request): Response
     {
         $response = new Response();
         return $response;
@@ -136,9 +153,10 @@ class UsersController implements RestController, RestBulkController, RestFindCon
     /**
      * POST|DELETE /[route]/bulkDelete
      *
-     * @return ResponseInterface
+     * @param Request $request
+     * @return Response
      */
-    public function bulkDelete(): ResponseInterface
+    public function bulkDelete(Request $request): Response
     {
         $response = new Response();
         return $response;

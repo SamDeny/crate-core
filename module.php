@@ -1,5 +1,27 @@
 <?php declare(strict_types=1);
 
+use Citrus\Router\Router;
+use Citrus\Http\Request;
+use Citrus\Http\Response;
+use Crate\Core\Controllers\UsersController;
+
+citrus(function (Router $router) {
+
+    $router->ctrl('users', UsersController::class);
+
+});
+
+/**
+ * Register Module
+ * ----------------------------------------
+ */
+module(function (\Crate\Core\Modules\Module $module) {
+
+
+
+});
+
+
 /**
  * Register Module
  * ---
@@ -12,7 +34,7 @@
  * @param $module is the already created Module instance for your extension.
  *        It already contains the basic data, provided by the composer.json 
  *        file. (unless no composer.json file exists in your module folder).
- */
+ *
 module(function(\Crate\Core\Classes\Module $module) {
 
     // Since we're using a composer.json file within this module, we don't 
@@ -82,3 +104,4 @@ module(function(\Crate\Core\Classes\Module $module) {
     $module->routes('routes.php');
 
 });
+*/
