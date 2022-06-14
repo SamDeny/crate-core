@@ -4,9 +4,12 @@ namespace Crate\Core\Commands;
 
 use Citrus\Console\Console;
 use Citrus\Console\Writer;
-use Citrus\Contracts\ConsoleCommand;
+use Citrus\Contracts\CommandContract;
+use Citrus\Utilities\Format;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 
-class CacheCommand implements ConsoleCommand
+class CacheCommand implements CommandContract
 {
 
     /**
@@ -30,13 +33,7 @@ class CacheCommand implements ConsoleCommand
                         'type'      => 'boolean',
                         'short'     => 't',
                         'required'  => false,
-                        'label'     => 'Explicitly clear the tmp storage'
-                    ],
-                    'template'  => [
-                        'type'      => 'boolean',
-                        'short'     => 'd',
-                        'required'  => false,
-                        'label'     => 'Explicitly clear the template storage'
+                        'label'     => 'Explicitly clear the temp storage'
                     ]
                 ]
             ],
@@ -53,13 +50,7 @@ class CacheCommand implements ConsoleCommand
                         'type'      => 'boolean',
                         'short'     => 't',
                         'required'  => false,
-                        'label'     => 'Explicitly measure the tmp storage'
-                    ],
-                    'template'  => [
-                        'type'      => 'boolean',
-                        'short'     => 'd',
-                        'required'  => false,
-                        'label'     => 'Explicitly measure the template storage'
+                        'label'     => 'Explicitly measure the temp storage'
                     ]
                 ]
             ]
@@ -85,9 +76,54 @@ class CacheCommand implements ConsoleCommand
      */
     public function clear(array $params)
     {
+        $folders = 0;
+        $files = 0;
+        
+        // Cache Directory
+        if (empty($params) || ($params['cache'] ?? false)) {
+            $entries = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator(path(':cache'), RecursiveDirectoryIterator::SKIP_DOTS),
+                RecursiveIteratorIterator::CHILD_FIRST
+            );
+            foreach($entries AS $entry) {
+                if (in_array($entry->getBasename(), ['.gitempty', '.', '..'])) {
+                    continue;
+                }
+                if ($entry->isDir()) {
+                    $folders++;
+                    rmdir($entry->getRealPath());
+                } else {
+                    $files++;
+                    unlink($entry->getRealPath());
+                }
+            }
+        }
 
+        // Temp Directory
+        if (empty($params) || ($params['temp'] ?? false)) {
+            $entries = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator(path(':temp'), RecursiveDirectoryIterator::SKIP_DOTS),
+                RecursiveIteratorIterator::CHILD_FIRST
+            );
+            foreach($entries AS $entry) {
+                if (in_array($entry->getBasename(), ['.gitempty', '.', '..'])) {
+                    continue;
+                }
+                if ($entry->isDir()) {
+                    $folders++;
+                    rmdir($entry->getRealPath());
+                } else {
+                    $files++;
+                    unlink($entry->getRealPath());
+                }
+            }
+        }
+
+        $this->writer->line(
+            $this->writer->yellow('Cache Cleared') .
+            sprintf(' - Removed %d files and %d folders.', $files, $folders)
+        );
     }
-
 
     /**
      * Command Method - Get Cache Size
@@ -96,7 +132,92 @@ class CacheCommand implements ConsoleCommand
      */
     public function size(array $params)
     {
+        $rows = [];
+        
+        // Cache Directory
+        if (empty($params) || ($params['cache'] ?? false)) {
+            $files = 0;
+            $folders = 0;
+            $size = 0;
 
+            // Loop through files
+            $entries = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator(path(':cache'), RecursiveDirectoryIterator::SKIP_DOTS),
+                RecursiveIteratorIterator::CHILD_FIRST
+            );
+            foreach($entries AS $entry) {
+                if (in_array($entry->getBasename(), ['.gitempty', '.', '..'])) {
+                    continue;
+                }
+                if ($entry->isDir()) {
+                    $folders++;
+                } else {
+                    $files++;
+                    $size += filesize($entry->getRealPath());
+                }
+            }
+
+            // Modify Bytes Text
+            $bytes = Format::bytes($size);
+            if (str_ends_with($bytes, ' B')) {
+                $bytes .= '  ';
+            }
+            
+            // Add Row
+            $rows[] = [
+                str_replace('\\', '/', substr(path(':cache'), strlen(path('$'))+1)),
+                $folders,
+                $files,
+                $bytes
+            ];
+        }
+
+        // Temp Directory
+        if (empty($params) || ($params['temp'] ?? false)) {
+            $files = 0;
+            $folders = 0;
+            $size = 0;
+
+            // Loop through files
+            $entries = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator(path(':temp'), RecursiveDirectoryIterator::SKIP_DOTS),
+                RecursiveIteratorIterator::CHILD_FIRST
+            );
+            foreach($entries AS $entry) {
+                if (in_array($entry->getBasename(), ['.gitempty', '.', '..'])) {
+                    continue;
+                }
+                if ($entry->isDir()) {
+                    $folders++;
+                } else {
+                    $files++;
+                    $size += filesize($entry->getRealPath());
+                }
+            }
+
+            // Modify Bytes Text
+            $bytes = Format::bytes($size);
+            if (str_ends_with($bytes, ' B')) {
+                $bytes .= '  ';
+            }
+            
+            // Add Row
+            $rows[] = [
+                str_replace('\\', '/', substr(path(':temp'), strlen(path('$'))+1)),
+                $folders,
+                $files,
+                $bytes
+            ];
+        }
+
+        // Print
+        $this->writer->line($this->writer->yellow('Cache Sizes'));
+        $this->writer->line();
+        $this->writer->table(
+            [ 'Path', 'Folders', 'Files', 'Total' ],
+            $rows,
+            ['left', 'right', 'right', 'right']
+        );
     }
 
 }

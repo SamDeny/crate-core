@@ -4,7 +4,13 @@ namespace Crate\Core\Modules;
 
 use Citrus\Framework\Application;
 use Citrus\Contracts\SingletonContract;
+use Citrus\FileSystem\Parser\JSONParser;
+use Citrus\Tarnished\TarnishedCollection;
+use Citrus\Tarnished\TarnishedPool;
+use Citrus\Tarnished\Tarnisher;
 use Crate\Core\Exceptions\CrateException;
+use Ds\Map;
+use Ds\Set;
 
 class ModuleRegistry implements SingletonContract
 {
@@ -14,7 +20,7 @@ class ModuleRegistry implements SingletonContract
      *
      * @var Application
      */
-    protected Application $application;
+    protected Application $app;
 
     /**
      * Module Root Path
@@ -24,47 +30,116 @@ class ModuleRegistry implements SingletonContract
     protected string $root;
 
     /**
-     * Available Module Sets
+     * Available Module instances.
      *
-     * @var array
+     * @var Map
      */
-    protected array $modules = [];
+    protected Map $modules;
+
+    /**
+     * Module Caching system.
+     *
+     * @var TarnishedCollection
+     */
+    protected TarnishedCollection $cache;
 
     /**
      * Currently loaded Module
      *
-     * @var string|null
+     * @var ?Module
      */
-    protected ?string $current = null;
+    private ?Module $current = null;
 
     /**
-     * Create new Module Registry
+     * Create new Module Registry.
      *
      * @param Application $application
      * @throws CrateException The module path does not exist!
      */
-    public function __construct(Application $application)
+    public function __construct(Application $citrus)
     {
-        if (($root = realpath($application->resolvePath(':modules'))) === false) {
+        if (($root = realpath($citrus->resolvePath(':modules'))) === false) {
             throw new CrateException('The module path does not exist!');
         }
 
-        $this->application = $application;
+        $this->app = $citrus;
         $this->root = $root;
+        $this->cache = $citrus->make(TarnishedPool::class, [
+            $citrus->resolvePath(':cache')
+        ])->getCollection('modules', 0x03);
+        $this->modules = new Map;
     }
 
     /**
-     * Get all available Moduless
+     * Get all available Modules.
      *
-     * @return array
+     * @param bool $toArray
+     * @return Map|Module[]
      */
-    public function getModules(): array
+    public function getModules(bool $toArray = false): Map|array
     {
-        return $this->modules;
+        return $toArray? $this->modules->toArray(): $this->modules;
     }
 
     /**
-     * Iterate through the module namespaces and folders.
+     * Get all installed Modules.
+     *
+     * @return Module[]
+     */
+    public function getInstalledModules(): array
+    {
+    }
+
+    /**
+     * Get a specific module.
+     *
+     * @param string $id
+     * @return ?Module
+     */
+    public function getModule(string $id): ?Module
+    {
+        if ($this->modules->hasKey($id)) {
+            return $this->modules->get($id);
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Check if module is installed.
+     *
+     * @param string $id
+     * @return boolean
+     */
+    public function isInstalled(string $id): bool
+    {
+
+    }
+
+    /**
+     * Check if a module is enabled.
+     *
+     * @param string $id
+     * @return boolean
+     */
+    public function isEnabled(string $id): bool
+    {
+
+    }
+
+    /**
+     * Check if a module is disabled.
+     *
+     * @param string $id
+     * @return boolean
+     */
+    public function isDisabled(string $id): bool
+    {
+
+    }
+
+    /**
+     * Iterates through the module namespaces and folders.
      *
      * @param string $base The base directory to iterate over.
      * @return Generator
@@ -89,9 +164,10 @@ class ModuleRegistry implements SingletonContract
                     yield [$item, $result[1], $result[2]];
                 }
             } else {
-                yield ['', $item, $path];
+                yield ['local', $item, $path];
             }
         }
+        closedir($handle);
     }
 
     /**
@@ -103,24 +179,26 @@ class ModuleRegistry implements SingletonContract
     {
         foreach($this->iterate() AS $data) {
             [$namespace, $module, $path] = $data;
+            $module_id = $namespace . '/' . $module;
 
             // Check module.php file
             $filepath = $path . DIRECTORY_SEPARATOR . 'module.php';
             if (!file_exists($filepath) || !is_file(($filepath))) {
-                //@todo Log 
+                //@todo $this->logger();
                 continue;
             }
 
-            // Include Module
-            $this->modules[$namespace . '/' . $module] = [
-                'local'     => $namespace === '',
-                'namespace' => $namespace,
-                'module'    => $module,
-                'path'      => $path,
-                'instance'  => null,
-                'loaded'    => false,
-                'installed' => null
-            ];
+            // Initial module from cache or fresh
+            $module = $this->cache->receive(
+                $module_id, 
+                fn(...$args) => $this->load(...$args), 
+                [$module_id, dirname($filepath)]
+            );
+            $this->modules->put($module_id, $module);
+        }
+
+        if ($this->cache->hasChanged()) {
+            $this->cache->write();
         }
     }
 
@@ -132,21 +210,30 @@ class ModuleRegistry implements SingletonContract
      * @throws CrateException The passed module id '%s' does not exist.
      * @throws CrateException The passed module '%s' has already been loaded.
      */
-    public function load(string $id)
+    private function load(Tarnisher $tarnisher, string $id, string $root)
     {
-        if (!array_key_exists($id, $this->modules)) {
-            throw new CrateException("The passed module id '$id' does not exist.");
+        if (file_exists($root . DIRECTORY_SEPARATOR . 'composer.json')) {
+            $data = JSONParser::parseFile($root . DIRECTORY_SEPARATOR . 'composer.json');
         }
 
-        if ($this->modules[$id]['loaded']) {
-            throw new CrateException("The passed module '$id' has already been loaded.");
-        }
+        // Create Module
+        $this->current = new Module($id, $root, $data ?? []);
 
-        // Load Modu.e
-        $this->current = $id;
-        require_once $this->modules[$id]['path'] . DIRECTORY_SEPARATOR . 'module.php';
+        // Observe Files
+        $tarnisher->observe($root . DIRECTORY_SEPARATOR . 'config');
+        $tarnisher->observe($root . DIRECTORY_SEPARATOR . 'composer.json');
+        $tarnisher->observe($root . DIRECTORY_SEPARATOR . 'module.php');
+        $tarnisher->observe($root . DIRECTORY_SEPARATOR . 'router.php');
+
+        // Require module file
+        require_once $root . DIRECTORY_SEPARATOR . 'module.php';
+
+        // Collect Data
+        $module = $tarnisher->collect($this->current);
         $this->current = null;
-        $this->modules[$id]['loaded'] = true;
+
+        // Return Module
+        return $module;
     }
 
     /**
@@ -164,53 +251,22 @@ class ModuleRegistry implements SingletonContract
             throw new CrateException('No module available, this method should only be called by the module() function.');
         }
 
-        // Get Module Storage
-        $id = $this->current;
-        $internal = &$this->modules[$id];
+        call_user_func($callback, $this->current);
 
-        // Check Cache
-        //@todo
+        if ($this->current->autoDetect) {
 
-        // Load composer.json
-        $composerPath = $internal['path'] . DIRECTORY_SEPARATOR . 'composer.json';
-        if (file_exists($composerPath)) {
-            try {
-                $composer = json_decode(file_get_contents($composerPath), true);
-            } catch(\Exception $e) {
-                throw new CrateException("The composer file for the module '$id' is invalid. Error: " . $e->getMessage());
-            }
         }
-
-        // Load Module
-        $internal['instance'] = new Module($this->application, $internal['path'], $id, $composer ?? []);
-        call_user_func($callback, $internal['instance']);
-        $internal['instance']->cacheModule();
     }
 
     /**
-     * Check if a module is available (regardless if it is installed or not).
+     * Bootstraps a Plugin
      *
-     * @param string $id
-     * @return boolean
+     * @param string $module_id
+     * @return void
      */
-    public function isAvailable(string $id): bool
+    public function bootstrap(string $module_id): void
     {
-        return array_key_exists($id, $this->modules);
-    }
-
-    /**
-     * Check if a module is installed.
-     *
-     * @param string $id
-     * @return boolean
-     */
-    public function isInstalled(string $id): bool
-    {
-        if (array_key_exists($id, $this->modules)) {
-            return $this->modules[$id]['installed'];
-        } else {
-            return false;
-        }
+        $this->modules[$module_id]->bootstrap();
     }
 
 }

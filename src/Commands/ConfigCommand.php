@@ -2,9 +2,11 @@
 
 namespace Crate\Core\Commands;
 
-use Citrus\Contracts\ConsoleCommand;
+use Citrus\Console\Console;
+use Citrus\Console\Writer;
+use Citrus\Contracts\CommandContract;
 
-class ConfigCommand implements ConsoleCommand
+class ConfigCommand implements CommandContract
 {
 
     /**
@@ -20,20 +22,17 @@ class ConfigCommand implements ConsoleCommand
                 'args'  => [
                     'env'       => [
                         'type'      => 'boolean',
-                        'required'  => false,
                         'label'     => 'Reduces list to the environment variables',
                         'unmeet'    => 'namespace'
                     ],
                     'namespace' => [
                         'type'      => 'string',
                         'short'     => 'ns',
-                        'required'  => false,
                         'label'     => 'Reduces list to the passed namespace',
                         'unmeet'    => 'env'
                     ],
                     'search'    => [
                         'type'      => 'string',
-                        'required'  => false,
                         'label'     => 'Performes a key / value search',
                         'mods'      => [
                             'keys'      => 'Searches in the configuration keys only',
@@ -49,6 +48,47 @@ class ConfigCommand implements ConsoleCommand
                 'label' => 'Sets a configuration value'
             ]
         ];
+    }
+
+    /**
+     * Create a new Command instance.
+     *
+     * @param Console $console The main Console instance.
+     * @param Writer $writer The main Writer instance.
+     */
+    public function __construct(Console $console, Writer $writer)
+    {
+        $this->console = $console;
+        $this->writer = $writer;
+    }
+
+    /**
+     * Command Method - List all configurations
+     *
+     * @return void
+     */
+    public function list(array $params)
+    {
+    }
+
+    /**
+     * Command Method - Get a specific configuration
+     *
+     * @return void
+     */
+    public function get(array $params)
+    {
+
+    }
+
+    /**
+     * Command Method - Set a specific configuration
+     *
+     * @return void
+     */
+    public function set(array $params)
+    {
+
     }
     
 }

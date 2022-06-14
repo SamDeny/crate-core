@@ -1,0 +1,9 @@
+{
+    "policies": {
+        "columns": {
+            "id": {
+                "type": "primary"
+            }
+        }
+    }
+}

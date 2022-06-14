@@ -1,0 +1,20 @@
+{
+    "migrations": {
+        "columns": {
+            "id": {
+                "type": "primary"
+            },
+            "filename": {
+                "type": "string",
+                "length": 255
+            },
+            "migrated_at": {
+                "type": "datetime",
+                "format": "YYYY-MM-DD HH:ii:ss"
+            }
+        },
+        "config": {
+            "defaultDateTime": false
+        }
+    }
+}

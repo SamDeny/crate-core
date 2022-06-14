@@ -1,0 +1,30 @@
+{
+    "users": {
+        "columns": {
+            "id": {
+                "type": "primary"
+            },
+            "status": {
+                "type": "enum",
+                "values": ["pending", "active", "remember", "locked", "blocked", "disabled"],
+                "default": "pending"
+            },
+            "username": {
+                "type": "string",
+                "length": 64,
+                "unique": true,
+                "filter": "lowercase,dash"
+            },
+            "password": {
+                "type": "string",
+                "length": 128,
+                "filter": "password"
+            },
+            "email": {
+                "type": "string",
+                "length": 255,
+                "filter": "email"
+            }
+        }
+    }
+}

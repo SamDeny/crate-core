@@ -1,55 +1,22 @@
 <?php declare(strict_types=1);
 
-use Citrus\Router\Router;
-use Citrus\Http\Request;
-use Citrus\Http\Response;
-use Crate\Core\Controllers\UsersController;
-
-citrus(function (Router $router) {
-
-    $router->ctrl('users', UsersController::class);
-
-});
-
 /**
  * Register Module
- * ----------------------------------------
+ * ------------------------------------------------------------
+ * First of all, we need to ontroduce our Module to Crate by 
+ * using the `module()` function with a Closure as argument, 
+ * which contains the unique Module instance.
  */
 module(function (\Crate\Core\Modules\Module $module) {
 
-
-
-});
-
-
-/**
- * Register Module
- * ---
- * First of all, our module must introduce itself to Crate. We've to use the 
- * module() function, since the dependency injection container hasn't been 
- * build yet. Thus, this file should ONLY set the basic details and config, 
- * such as the available routes, and MUST NOT handle any action itself. Keep in 
- * mind, that this file will be cached (unless otherwise stated).
- * 
- * @param $module is the already created Module instance for your extension.
- *        It already contains the basic data, provided by the composer.json 
- *        file. (unless no composer.json file exists in your module folder).
- *
-module(function(\Crate\Core\Classes\Module $module) {
-
-    // Since we're using a composer.json file within this module, we don't 
-    // have to set the basic module data, but we can still add some extra 
-    // flavour (adapt some details). Using $module->data = [] will merge the 
-    // passed information with the already provided one.
+    // Since we're using a composer.json file within this module, we don't have 
+    // to set the basic module data, but we can still add some extra flavour.
     $module->data = [
         'status'                => 'alpha',
-
-        // Similar to composer's "suggest" option but specificly for modules.
         'optional-dependencies' => [
             'crate/nodejs'  => '^0.1.0'
         ]
     ];
-
 
     // During development, it may is a good idea to disable the whole caching 
     // for this module, at least in a non-production environment. Thus, we
@@ -57,29 +24,24 @@ module(function(\Crate\Core\Classes\Module $module) {
     // evaluated of the provided data / composer.json details).
     $module->cache = citrus()->isProduction() && $module->isStable(); 
 
-
     // This module provides some configuration files in the ./config folder.
     // Crate should know about them, so the end-users are able to configure 
     // your module without touching your source files.
     // PS.: You can use YAML, JSON, INI or PHP for your configuration files. 
-    $module->configurable('config');
-
+    $module->configure('config');
 
     // This module provides some Citrus CLI Commands, we should inform Citrus
     // about them, so the end-user can use them.
     $module->commands([
-        'cache'         => \Crate\Core\Commands\CacheCommand::class,
-        'config'        => \Crate\Core\Commands\ConfigCommand::class,
-        'crate'         => \Crate\Core\Commands\CrateCommand::class,
-        'make'          => \Crate\Core\Commands\MakeCommand::class,
-        'migrate'       => \Crate\Core\Commands\MigrateCommand::class,
-        'module'        => \Crate\Core\Commands\ModuleCommand::class,
-        'setup'         => \Crate\Core\Commands\SetupCommand::class
+        \Crate\Core\Commands\CacheCommand::class,
+        \Crate\Core\Commands\ConfigCommand::class,
+        \Crate\Core\Commands\MigrateCommand::class,
+        \Crate\Core\Commands\ModuleCommand::class,
+        \Crate\Core\Commands\SetupCommand::class
     ]);
 
-
     // Our crate/core package is the primary environment for the Crate CMS.
-    // It provides the basic user and policies functionallity, and handles 
+    // It provides the basic user and policies functionality, and handles 
     // all the basic tokens we need. Those provided services must be registered 
     // as well, so other plugins can depend on it.
     $module->services([
@@ -89,7 +51,6 @@ module(function(\Crate\Core\Classes\Module $module) {
         'token'         => \Crate\Core\Services\TokenService::class
     ]);
 
-
     // Our crate/core package provides some additional class factories, which 
     // are - similar to the Service Providers above - available for every other 
     // module. Thus we need to set them as follows:
@@ -98,10 +59,8 @@ module(function(\Crate\Core\Classes\Module $module) {
         'mailer'        => \Crate\Core\Factories\MailerFactory::class
     ]);
 
-
     // Now, we'have to declare the first basic routes, which will be available 
     // within the Crate ecosystem.
     $module->routes('routes.php');
 
 });
-*/

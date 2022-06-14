@@ -2,14 +2,14 @@
 
 namespace Crate\Core\Database\Drivers;
 
-use Crate\Core\Concerns\DriverRequestData;
 use Crate\Core\Contracts\DriverInterface;
+use Crate\Core\Database\Drivers\Orders\DriverRequestOrder;
 use Crate\Core\Exceptions\DriverException;
 use MySQLi as MySQLiConnection;
 
 class MySQLi implements DriverInterface
 {
-    use DriverRequestData;
+    use DriverRequestOrder;
 
     /**
      * Current MySQLi database instance

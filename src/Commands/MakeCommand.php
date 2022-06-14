@@ -2,14 +2,23 @@
 
 namespace Crate\Core\Commands;
 
-use Citrus\Contracts\ConsoleCommand;
+use Citrus\Contracts\CommandContract;
 
-class MakeCommand implements ConsoleCommand
+class MakeCommand implements CommandContract
 {
 
-    static public function describe()
+    /**
+     * Describe the command including all available methods and arguments.
+     *
+     * @return array
+     */
+    static public function describe(): array
     {
-        
+        return [
+            'make:module' => [
+
+            ]
+        ];
     }
     
 }

@@ -2,14 +2,14 @@
 
 namespace Crate\Core\Database\Drivers;
 
-use Crate\Core\Concerns\DriverRequestData;
 use Crate\Core\Contracts\DriverInterface;
+use Crate\Core\Database\Drivers\Orders\DriverRequestOrder;
 use Crate\Core\Exceptions\DriverException;
 use SQLite3;
 
 class SQLite implements DriverInterface
 {
-    use DriverRequestData;
+    use DriverRequestOrder;
 
     /**
      * Current SQLite3 database instance

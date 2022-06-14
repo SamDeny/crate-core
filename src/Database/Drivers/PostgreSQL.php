@@ -3,10 +3,12 @@
 namespace Crate\Core\Database\Drivers;
 
 use Crate\Core\Contracts\DriverInterface;
+use Crate\Core\Database\Drivers\Orders\DriverRequestOrder;
 use Crate\Core\Exceptions\DriverException;
 
 class PostgreSQL implements DriverInterface
 {
+    use DriverRequestOrder;
 
     public function __construct()
     {

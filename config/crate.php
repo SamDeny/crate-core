@@ -7,7 +7,7 @@ return [
      * ---
      * The main environment on which your Crate application instance currently 
      * runs in. The native supported values are 'production', 'staging' and 
-     * 'development', but you can use other values as well.
+     * 'development', it is not recommended using other values.
      */
     'env' => env('CRATE_ENV', 'production'),
     
@@ -19,7 +19,7 @@ return [
      * and similar application or module-related datas. It also occures in the 
      * JSON responses.
      */
-    'name' => env('CRATE_NAME', 'Crate Application'),
+    'name' => env('CRATE_APP', 'My Crate Application'),
     
 
     /**
@@ -27,9 +27,20 @@ return [
      * ---
      * The main application URL on which your new Crate application will be 
      * available. You can also configure additional URLs, pointing to the same
-     * Crate instance, by using crates 'channels' module.
+     * Crate instance, we recommend using the @crate/channels modules for this.
      */
     'url' => env('CRATE_URL', 'http://localhost'),
+    
+
+    /**
+     * Crate Application Base Path
+     * ---
+     * The base path on which the Crate Rest-API service should be available. 
+     * This should be '/' for a API-only usage, when using any frontend or 
+     * backend module, it is recommended setting this to '/api' or a different
+     * domain or subdomain (start with http(s):// in this case).
+     */
+    'base' => env('CRATE_BASE', '/'),
 
 
     /**
@@ -39,7 +50,7 @@ return [
      * requests will be redirects using the HTTP 301 status code, other ones, 
      * like POST, PUT or PATCH are redirected using HTTP 303.
      */
-    'https' => env('CRATE_HTTPS', false),
+    'https' => env('CRATE_FORCE_HTTPS', false),
 
 
     /**
@@ -80,5 +91,24 @@ return [
      * is using crate CLI: `crate setup:secret`.
      */
     'secret' => env('CRATE_SECRET', null),
+
+
+    /**
+     * Session Configuration
+     * ---
+     * The following settings are meant for the Session ServiceProvider, 
+     * provided by the @crate/core module. Visit the PHP documentation for 
+     * more details: 
+     * https://www.php.net/manual/en/function.session-set-cookie-params
+     */
+    'session' => [
+        'name'      => env('CRATE_APP', 'unconfigured_crate_app'),
+        'lifetime'  => 0,
+        'path'      => '/',
+        'domain'    => env('CRATE_URL', 'localhost'),
+        'secure'    => env('CRATE_FORCE_HTTPS', false),
+        'httponly'  => true,
+        'samesite'  => 'Strict'
+    ]
 
 ];

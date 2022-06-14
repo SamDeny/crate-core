@@ -2,7 +2,9 @@
 
 namespace Crate\Core\Modules;
 
+use Citrus\Console\Console;
 use Citrus\Framework\Application;
+use Crate\Core\Exceptions\CrateException;
 use Crate\Core\Parser\INIParser;
 use Crate\Core\Parser\JSONParser;
 use Crate\Core\Parser\YAMLParser;
@@ -12,11 +14,11 @@ class Module
 {
 
     /**
-     * Citrus Application
+     * Unique Module ID
      *
-     * @var Application
+     * @var string
      */
-    protected Application $app;
+    protected string $id;
 
     /**
      * Module Root Path
@@ -24,13 +26,6 @@ class Module
      * @var string
      */
     protected string $root;
-
-    /**
-     * Unique Module ID
-     *
-     * @var string
-     */
-    protected string $id;
 
     /**
      * Module Data array
@@ -44,7 +39,7 @@ class Module
      *
      * @var array
      */
-    protected array $config = [];
+    protected array $configs = [];
 
     /**
      * Module Factories array
@@ -84,16 +79,36 @@ class Module
     /**
      * Create a new Module
      *
-     * @param string $root
      * @param string $id
-     * @param array $data
+     * @param string $root
+     * @param array $datra
      */
-    public function __construct(Application $citrus, string $root, string $id, array $data)
+    public function __construct(string $id, string $root, array $data)
     {
-        $this->app = $citrus;
-        $this->root = $root;
+        $this->root = $root . DIRECTORY_SEPARATOR;
         $this->id = $id;
         $this->data = $data;
+    }
+
+    /**
+     * Bootstrap Module
+     * 
+     * @return void
+     */
+    public function bootstrap(): void
+    {
+        /** @var \Citrus\Framework\Configurator */
+        $config = citrus()->getConfigurator();
+        array_walk($this->configs, fn($configs, $alias) => $config->setConfiguration($alias, $configs));
+
+        // Register Console Commands
+        array_walk($this->commands, fn($command) => Console::registerCommands($command));
+
+        // Register Routes
+        if ($this->routes) {
+            include $this->routes;
+        }
+
     }
 
     /**
@@ -139,17 +154,6 @@ class Module
     }
 
     /**
-     * Cache the Module Data
-     * @internal This function is only supposed to be used internally be the ModuleRegistry.
-     * 
-     * @return void
-     */
-    public function cacheModule()
-    {
-
-    }
-
-    /**
      * Register a Configuration directory or specific file.
      *
      * @param string $filepath The filepath to the config directory or to the
@@ -158,9 +162,32 @@ class Module
      *                    config file, otherwise null.
      * @return void
      */
-    public function configurable(string $filepath, ?string $alias = null)
+    public function configure(string $filepath, ?string $alias = null)
     {
-        $this->app->loadConfiguration($filepath, $alias);
+        $filepath = path(':modules', $this->id, $filepath);
+        if (!file_exists($filepath)) {
+            throw new CrateException("The passed configuration path '$filepath' does not exist.");
+        }
+
+        if (is_dir($filepath)) {
+            $handle = opendir($filepath);
+            while(($file = readdir($handle)) !== false) {
+                if (!is_file($filepath . DIRECTORY_SEPARATOR . $file)) {
+                    continue;
+                }
+
+                $ext = pathinfo($file, \PATHINFO_EXTENSION);
+                $alias = substr($file, 0, -strlen($ext)-1);
+
+                $this->configs[$alias] = citrus()->getConfigurator()->parseConfiguration(
+                    $filepath . DIRECTORY_SEPARATOR . $file, 
+                    $ext === 'conf'? 'ini': $ext
+                );
+            }
+            closedir($handle); 
+        } else {
+            $this->configs[$alias] = $filepath;
+        }
     }
 
     /**
@@ -239,6 +266,7 @@ class Module
             return $this->routes;
         } else {
             if (is_string($routes)) {
+                //@todo Add Tarnished observer for routes
                 $this->routes = $this->root . DIRECTORY_SEPARATOR . $routes;
             } else {
                 $this->routes = $routes;
@@ -324,6 +352,17 @@ class Module
         return $this->getStatus() === 'alpha' 
             || $this->getStatus() === 'a'
             || $this->getStatus() === 'dev';        // Development-Builds are seen as Alpha-Versions
+    }
+
+    /**
+     * Get Path within Module directory.
+     *
+     * @param string $path
+     * @return string
+     */
+    public function getPath(string $path): string
+    {
+        return $this->root . $path;
     }
 
 }
