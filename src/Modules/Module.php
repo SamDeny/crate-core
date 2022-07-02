@@ -70,6 +70,13 @@ class Module
     protected mixed $routes = null;
 
     /**
+     * Module Runtime class
+     *
+     * @var ?string
+     */
+    protected mixed $runtime = null;
+
+    /**
      * Module Cache State
      *
      * @var string
@@ -109,6 +116,13 @@ class Module
             include $this->routes;
         }
 
+        // MAke Runtime
+        if ($this->runtime) {
+            $runtime = citrus()->make($this->runtime);
+            if (method_exists($runtime, 'bootstrap')) {
+                $runtime->bootstrap();
+            }
+        }
     }
 
     /**
@@ -271,6 +285,21 @@ class Module
             } else {
                 $this->routes = $routes;
             }
+        }
+    }
+
+    /**
+     * Add Runtime class
+     *
+     * @return null|string|self
+     */
+    public function runtime(null|string $runtime): null|string|self
+    {
+        if (is_null($runtime)) {
+            return $this->runtime;
+        } else {
+            $this->runtime = $runtime;
+            return $this;
         }
     }
 

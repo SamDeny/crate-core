@@ -92,6 +92,23 @@ return [
      */
     'secret' => env('CRATE_SECRET', null),
 
+    /**
+     * Security Settings
+     * ---
+     * 
+     */
+    'security' => [
+        'algorithms' => [\PASSWORD_BCRYPT],
+        \PASSWORD_BCRYPT => [
+            'cost' => 10
+        ],
+
+        'crypt' => 'openssl',
+        'openssl' => [
+            'cipher' => 'aes-256-gcm'
+        ]
+    ],
+
 
     /**
      * Session Configuration
@@ -102,7 +119,7 @@ return [
      * https://www.php.net/manual/en/function.session-set-cookie-params
      */
     'session' => [
-        'name'      => env('CRATE_APP', 'unconfigured_crate_app'),
+        'name'      => env('CRATE_SESSION_ID', 'crate_session'),
         'lifetime'  => 0,
         'path'      => '/',
         'domain'    => env('CRATE_URL', 'localhost'),

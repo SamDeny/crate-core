@@ -4,53 +4,36 @@ namespace Crate\Core\Controllers;
 
 use Citrus\Http\Request;
 use Citrus\Http\Response;
-use Crate\Core\Contracts\RestBulkControllerContract;
 use Crate\Core\Contracts\RestControllerContract;
 use Crate\Core\Contracts\RestFindControllerContract;
 use Crate\Core\Contracts\RestPatchControllerContract;
 
 class UsersController implements 
     RestControllerContract, 
-    RestBulkControllerContract, 
     RestFindControllerContract, 
     RestPatchControllerContract
 {
 
     /**
-     * Create a new UsersController instance.
+     * Create a new PoliciesController instance.
      */
     public function __construct()
     {
         
     }
-
     /**
-     * GET|POST /users
-     *
-     * @param Request $request
-     * @return Response
-     */
-    public function find(Request $request): Response
-    {
-        $response = new Response();
-        return $response;
-    }
-
-    /**
-     * GET /[route]
+     * GET /users
      *
      * @param Request $request
      * @return Response
      */
     public function list(Request $request): Response
     {
-        $response = new Response();
-        $response->setJSON(['test']);
-        return $response;
+        return (new Response)->setJSON(['method' => 'list']);
     }
 
     /**
-     * GET /[route]/[identifier]
+     * GET /users/[identifier]
      *
      * @param Request $request
      * @param array $args
@@ -58,24 +41,33 @@ class UsersController implements
      */
     public function get(Request $request, array $args = []): Response
     {
-        $response = new Response();
-        return $response;
+        return (new Response)->setJSON(['method' => 'get']);
     }
 
     /**
-     * POST /[route]
+     * GET|POST /users/find
+     *
+     * @param Request $request
+     * @return Response
+     */
+    public function find(Request $request): Response
+    {
+        return (new Response)->setJSON(['method' => 'find']);
+    }
+
+    /**
+     * POST /users
      *
      * @param Request $request
      * @return Response
      */
     public function create(Request $request): Response
     {
-        $response = new Response();
-        return $response;
+        return (new Response)->setJSON(['method' => 'create']);
     }
 
     /**
-     * POST /[route]/[identifier]
+     * POST /users/[identifier]
      *
      * @param Request $request
      * @param array $args
@@ -83,25 +75,11 @@ class UsersController implements
      */
     public function update(Request $request, array $args): Response
     {
-        $response = new Response();
-        return $response;
+        return (new Response)->setJSON(['method' => 'update']);
     }
 
     /**
-     * PATCH /[route]/[identifier]
-     *
-     * @param Request $request
-     * @param array $args
-     * @return Response
-     */
-    public function patch(Request $request, array $args = []): Response
-    {
-        $response = new Response();
-        return $response;
-    }
-
-    /**
-     * PUT /[route]/:uuid?
+     * PUT /users/[identifier]?
      *
      * @param Request $request
      * @param array $args
@@ -109,12 +87,11 @@ class UsersController implements
      */
     public function createOrUpdate(Request $request, array $args = []): Response
     {
-        $response = new Response();
-        return $response;
+        return (new Response)->setJSON(['method' => 'createOrUpdate']);
     }
 
     /**
-     * DELETE /[users]/:uuid
+     * DELETE /users/[identifier]
      *
      * @param Request $request
      * @param array $args
@@ -122,44 +99,19 @@ class UsersController implements
      */
     public function delete(Request $request, array $args): Response
     {
-        $response = new Response();
-        return $response;
+        return (new Response)->setJSON(['method' => 'delete']);
     }
-
+    
     /**
-     * POST /[route]/bulkGet
+     * PATCH /users/[identifier]?
      *
      * @param Request $request
+     * @param array $args
      * @return Response
      */
-    public function bulkGet(Request $request): Response
+    public function patch(Request $request, array $args = []): Response
     {
-        $response = new Response();
-        return $response;
-    }
-
-    /**
-     * POST|PUT|PATCH /[route]/bulkPost
-     *
-     * @param Request $request
-     * @return Response
-     */
-    public function bulkPost(Request $request): Response
-    {
-        $response = new Response();
-        return $response;
-    }
-
-    /**
-     * POST|DELETE /[route]/bulkDelete
-     *
-     * @param Request $request
-     * @return Response
-     */
-    public function bulkDelete(Request $request): Response
-    {
-        $response = new Response();
-        return $response;
+        return (new Response)->setJSON(['method' => 'patch']);
     }
 
 }

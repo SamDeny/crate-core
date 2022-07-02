@@ -19,9 +19,10 @@ interface RestPatchControllerContract
 {
 
     /**
-     * PATCH /[route]/[identifier]
+     * PATCH /[route]/[identifier]?
      *
      * @param Request $request
+     * @param array $args
      * @return Response
      */
     public function patch(Request $request, array $args = []): Response;

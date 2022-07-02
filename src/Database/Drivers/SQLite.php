@@ -2,12 +2,13 @@
 
 namespace Crate\Core\Database\Drivers;
 
-use Crate\Core\Contracts\DriverInterface;
+use Crate\Core\Contracts\DriverContract;
 use Crate\Core\Database\Drivers\Orders\DriverRequestOrder;
+use Crate\Core\Database\Scheme;
 use Crate\Core\Exceptions\DriverException;
 use SQLite3;
 
-class SQLite implements DriverInterface
+class SQLite implements DriverContract
 {
     use DriverRequestOrder;
 
@@ -23,7 +24,7 @@ class SQLite implements DriverInterface
      *
      * @var string
      */
-    protected string $filepath;
+    protected string $path;
 
     /**
      * SQLite3 encryption key
@@ -49,13 +50,13 @@ class SQLite implements DriverInterface
     /**
      * Create a new SQLite driver instance.
      *
-     * @param string $filepath
+     * @param string $path
      * @param ?string $encryptionKey
      * @param array $pragmas
      */
-    public function __construct(string $filepath, ?string $encryptionKey = null, array $pragmas = [])
+    public function __construct(string $path, ?string $encryptionKey = null, array $pragmas = [])
     {
-        $this->filepath = $filepath;
+        $this->path = path($path);
         $this->encryptionKey = $encryptionKey;
         $this->pragmas = $pragmas;
         $this->connect();
@@ -79,9 +80,9 @@ class SQLite implements DriverInterface
         $flags = \SQLITE3_OPEN_CREATE | \SQLITE3_OPEN_READWRITE;
 
         if ($this->encryptionKey) {
-            $this->connection = new SQLite3($this->filepath, $flags, $this->encryptionKey);
+            $this->connection = new SQLite3($this->path, $flags, $this->encryptionKey);
         } else {
-            $this->connection = new SQLite3($this->filepath, $flags);
+            $this->connection = new SQLite3($this->path, $flags);
         }
 
         foreach ($this->pragmas AS $pragma => $value) {
@@ -99,8 +100,10 @@ class SQLite implements DriverInterface
      */
     public function disconnect()
     {
-        $this->connection->close();
-        $this->connection = null;
+        if ($this->connection) {
+            $this->connection->close();
+            $this->connection = null;
+        }
     }
 
     /**
@@ -114,6 +117,143 @@ class SQLite implements DriverInterface
             $this->connect();
         }
         return $this->connection;
+    }
+
+    /**
+     * Migrate a Scheme
+     *
+     * @return boolean
+     */
+    public function migrate(Scheme $scheme): bool
+    {
+        if ($scheme->action() === 'create') {
+            $created_at = $scheme->created_at;
+            $updated_at = $scheme->updated_at;
+
+            // Pass Fields
+            $fields = [];
+            $fields['uuid'] = "'uuid' TEXT PRIMARY KEY CHECK(length(\"uuid\") == 36)";
+            foreach ($scheme->properties() AS $name => $property) {
+                if ($name === 'uuid' || $name === $created_at || $name === $updated_at) {
+                    continue;
+                }
+                $constraints = [];
+
+                // Evaluate Type
+                if ($property->type === 'integer') {
+                    $type = 'INTEGER';
+                } else if ($property->type === 'double') {
+                    $type = 'REAL';
+                } else {
+                    $type = 'TEXT';
+                }
+
+                // Required Constraint
+                if (isset($property->required) && $property->required === true) {
+                    $constraints[] = 'NOT NULL';
+                } else {
+                    $constraints[] = 'NULL';
+                }
+
+                // Unique Constraint
+                if ($property->unique) {
+                    $constraints[] = "UNIQUE";
+                }
+
+                // Default Constraint
+                if ($property->default) {
+                    $constraints[] = "DEFAULT '$property->default'";
+                }
+
+                // Unsigned Constraint
+                if ($property->type === 'integer' ||$property->type === 'double') {
+                    if (isset($property->min) && isset($property->max)) {
+                        $constraints[] = "CHECK(\"$property->name\" >= $property->min AND \"$property->name\" <= $property->max)";
+                    } else if (isset($property->min)) {
+                        $constraints[] = "CHECK(\"$property->name\" >= $property->min)";
+                    } else if (isset($property->max)) {
+                        $constraints[] = "CHECK(\"$property->name\" <= $property->max)";
+                    } else if (isset($property->unsigned)) {
+                        $constraints[] = "CHECK(\"$property->name\" >= 0)";
+                    }
+                } else if ($property->type === 'string') {
+                    if (isset($property->minLength) && isset($property->maxLength)) {
+                        $constraints[] = "CHECK(length(\"$property->name\") >= $property->minLength AND length(\"$property->name\") <= $property->maxLength)";
+                    } else if (isset($property->length)) {
+                        $constraints[] = "CHECK(length(\"$property->name\") == $property->length)";
+                    } else if (is_array($property->enum)) {
+                        $constraints[] = "CHECK(\"$property->name\" IN ['". implode("', '", $property->enum) ."'])";
+                    }
+                }
+
+                // Add Field
+                $fields[$property->name] = trim("\"{$property->name}\" $type " . implode(' ', $constraints));
+            }
+            if ($created_at) {
+                $fields[$created_at] = "'$created_at' TEXT DEFAULT (DATETIME('NOW'))";
+            }
+            if ($updated_at) {
+                $fields[$updated_at] = "'$updated_at' TEXT NULL";
+            }
+
+            // Build Query
+            if (!$updated_at) {
+                $query = sprintf(
+                    "CREATE TABLE IF NOT EXISTS %s (\n  %s\n);\n",
+                    $scheme->scheme(), 
+                    implode(",\n  ", $fields)
+                );
+            } else {
+                $query = sprintf(
+                    "CREATE TABLE IF NOT EXISTS %1\$s (\n  %2\$s\n);\n" .
+                    "CREATE TRIGGER %1\$s_%3\$s AFTER UPDATE ON %1\$s\n" .
+                    "  BEGIN\n" .
+                    "    UPDATE %1\$s SET %3\$s = DATETIME('NOW') WHERE uuid = NEW.uuid;\n" .
+                    "  END;",
+                    $scheme->scheme(), 
+                    implode(",\n  ", $fields),
+                    $updated_at
+                );
+            }
+
+            // Execute Query
+            $result = @$this->getConnection()->exec($query);
+            $this->lastSQL = $query;
+            if (!$result) {
+                $this->lastRequest = [
+                    'errorCode'     => $this->getConnection()->lastErrorCode(),
+                    'errorMessage'  => $this->getConnection()->lastErrorMsg(),
+                    'insertIds'     => [],
+                    'result'        => false,
+                ];
+                return false;
+            } else {
+                $this->lastRequest = [
+                    'errorCode'     => 0,
+                    'errorMessage'  => null,
+                    'insertIds'     => [],
+                    'result'        => true,
+                ];
+                return true;
+            }
+        } else if ($scheme->action() === 'update') {
+
+        } else if ($scheme->action() === 'delete') {
+            
+        }
+
+        return false;
+    }
+
+    public function select()
+    {
+        //@todo
+
+        $connection = $this->getConnection();
+
+        $results = $connection->query('SELECT * FROM migrations;');
+        dump($results->fetchArray());
+
     }
 
     /**
@@ -190,6 +330,16 @@ class SQLite implements DriverInterface
 
         // Return affected row counter
         return count($ids);
+    }
+
+    public function update()
+    {
+        //@todo
+    }
+
+    public function delete()
+    {
+        //@todo
     }
 
     /**

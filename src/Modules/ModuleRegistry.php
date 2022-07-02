@@ -88,6 +88,8 @@ class ModuleRegistry implements SingletonContract
      */
     public function getInstalledModules(): array
     {
+        //@todo
+        return [];
     }
 
     /**
@@ -113,7 +115,8 @@ class ModuleRegistry implements SingletonContract
      */
     public function isInstalled(string $id): bool
     {
-
+        //@todo
+        return true;
     }
 
     /**
@@ -124,7 +127,8 @@ class ModuleRegistry implements SingletonContract
      */
     public function isEnabled(string $id): bool
     {
-
+        //@todo
+        return true;
     }
 
     /**
@@ -135,7 +139,8 @@ class ModuleRegistry implements SingletonContract
      */
     public function isDisabled(string $id): bool
     {
-
+        //@todo
+        return false;
     }
 
     /**

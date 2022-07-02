@@ -2,11 +2,11 @@
 
 namespace Crate\Core\Database\Drivers;
 
-use Crate\Core\Contracts\DriverInterface;
+use Crate\Core\Contracts\DriverContract;
 use Crate\Core\Database\Drivers\Orders\DriverRequestOrder;
 use Crate\Core\Exceptions\DriverException;
 
-class PostgreSQL implements DriverInterface
+class PostgreSQL implements DriverContract
 {
     use DriverRequestOrder;
 

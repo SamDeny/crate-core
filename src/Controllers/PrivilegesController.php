@@ -8,7 +8,7 @@ use Crate\Core\Contracts\RestControllerContract;
 use Crate\Core\Contracts\RestFindControllerContract;
 use Crate\Core\Contracts\RestPatchControllerContract;
 
-class PoliciesController implements 
+class PrivilegesController implements 
     RestControllerContract, 
     RestFindControllerContract, 
     RestPatchControllerContract
@@ -22,7 +22,7 @@ class PoliciesController implements
         
     }
     /**
-     * GET /policies
+     * GET /privileges
      *
      * @param Request $request
      * @return Response
@@ -33,7 +33,7 @@ class PoliciesController implements
     }
 
     /**
-     * GET /policies/[identifier]
+     * GET /privileges/[identifier]
      *
      * @param Request $request
      * @param array $args
@@ -45,7 +45,7 @@ class PoliciesController implements
     }
 
     /**
-     * GET|POST /policies/find
+     * GET|POST /privileges/find
      *
      * @param Request $request
      * @return Response
@@ -56,7 +56,7 @@ class PoliciesController implements
     }
 
     /**
-     * POST /policies
+     * POST /privileges
      *
      * @param Request $request
      * @return Response
@@ -67,7 +67,7 @@ class PoliciesController implements
     }
 
     /**
-     * POST /policies/[identifier]
+     * POST /privileges/[identifier]
      *
      * @param Request $request
      * @param array $args
@@ -79,7 +79,7 @@ class PoliciesController implements
     }
 
     /**
-     * PUT /policies/[identifier]?
+     * PUT /privileges/[identifier]?
      *
      * @param Request $request
      * @param array $args
@@ -91,7 +91,7 @@ class PoliciesController implements
     }
 
     /**
-     * DELETE /policies/[identifier]
+     * DELETE /privileges/[identifier]
      *
      * @param Request $request
      * @param array $args
@@ -103,7 +103,7 @@ class PoliciesController implements
     }
     
     /**
-     * PATCH /policies/[identifier]?
+     * PATCH /privileges/[identifier]?
      *
      * @param Request $request
      * @param array $args

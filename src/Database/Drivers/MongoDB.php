@@ -2,12 +2,12 @@
 
 namespace Crate\Core\Database\Drivers;
 
-use Crate\Core\Contracts\DriverInterface;
+use Crate\Core\Contracts\DriverContract;
 use Crate\Core\Database\Drivers\Orders\DriverRequestOrder;
 use MongoDB\Client;
 use MongoDB\Database;
 
-class MongoDB implements DriverInterface
+class MongoDB implements DriverContract
 {
     use DriverRequestOrder;
 

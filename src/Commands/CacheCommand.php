@@ -72,6 +72,7 @@ class CacheCommand implements CommandContract
     /**
      * Command Method - Clear Cache
      *
+     * @param array $params
      * @return void
      */
     public function clear(array $params)
@@ -128,6 +129,7 @@ class CacheCommand implements CommandContract
     /**
      * Command Method - Get Cache Size
      *
+     * @param array $params
      * @return void
      */
     public function size(array $params)

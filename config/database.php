@@ -41,7 +41,7 @@ return [
         'sqlite'        => [
 
             // Driver class which extends DriverInterface
-            'provider'      => \Crate\Database\Drivers\SQLite::class,
+            'provider'      => \Crate\Core\Database\Drivers\SQLite::class,
 
             // Driver-specific configuration, which are passed as named 
             // arguments to it's constructor
@@ -59,7 +59,7 @@ return [
         'mongodb'       => [
 
             // Driver class which extends DriverInterface
-            'provider'      => \Crate\Database\Provider\MongoDB::class,
+            'provider'      => \Crate\Core\Database\Drivers\MongoDB::class,
 
             // Driver-specific configuration, which are passed as named 
             // arguments to it's constructor
@@ -75,7 +75,7 @@ return [
         'mysqli'        => [
 
             // Driver class which extends DriverInterface
-            'provider'  => \Crate\Database\Provider\MySQLi::class,
+            'provider'  => \Crate\Core\Database\Drivers\MySQLi::class,
 
             // Driver-specific configuration, which are passed as named 
             // arguments to it's constructor

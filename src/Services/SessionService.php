@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Crate\Services;
+namespace Crate\Core\Services;
 
 use Citrus\Concerns\ServiceConcern;
 
@@ -56,14 +56,14 @@ class SessionService extends ServiceConcern
             return;
         }
 
-        session_name($this->application->config('crate.session.name'));
+        session_name($this->app->getConfiguration('crate.session.name'));
         session_set_cookie_params([
-            'lifetime'  => $this->application->config('crate.session.lifetime'), 
-            'path'      => $this->application->config('crate.session.path'), 
-            'domain'    => $this->application->config('crate.session.domain'), 
-            'secure'    => $this->application->config('crate.session.secure'), 
-            'httponly'  => $this->application->config('crate.session.httponly'), 
-            'samesite'  => $this->application->config('crate.session.samesite'), 
+            'lifetime'  => $this->app->getConfiguration('crate.session.lifetime'), 
+            'path'      => $this->app->getConfiguration('crate.session.path'), 
+            'domain'    => $this->app->getConfiguration('crate.session.domain'), 
+            'secure'    => $this->app->getConfiguration('crate.session.secure'), 
+            'httponly'  => $this->app->getConfiguration('crate.session.httponly'), 
+            'samesite'  => $this->app->getConfiguration('crate.session.samesite'), 
         ]);
         session_start();
     }

@@ -112,7 +112,7 @@ interface RestControllerContract extends ControllerContract
     public function update(Request $request, array $args): Response;
 
     /**
-     * PUT /[route]/:uuid?
+     * PUT /[route]/[identifier]?
      *
      * @param Request $request
      * @param array $args
@@ -121,7 +121,7 @@ interface RestControllerContract extends ControllerContract
     public function createOrUpdate(Request $request, array $args = []): Response;
 
     /**
-     * DELETE /[users]/:uuid
+     * DELETE /[route]/[identifier]
      *
      * @param Request $request
      * @param array $args

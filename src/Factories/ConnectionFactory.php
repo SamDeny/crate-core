@@ -1,8 +1,10 @@
 <?php declare(strict_types=1);
 
-namespace Crate\Factories;
+namespace Crate\Core\Factories;
 
 use Citrus\Concerns\FactoryConcern;
+use Citrus\Exceptions\RuntimeException;
+use Crate\Core\Database\Connection;
 
 class ConnectionFactory extends FactoryConcern
 {
@@ -16,12 +18,21 @@ class ConnectionFactory extends FactoryConcern
      */
     public function make(string $id = null, ...$arguments): Connection
     {
-        if ($id === null && empty($arguments)) {
-            $id = config('mailer.default');
-            $config = config('mailer.drivers.' . $id);
+        if (empty($arguments)) {
+            if ($id === 'crate') {
+                $id = config('database.crate');
+            }
+            if ($id === null || $id === 'default') {
+                $id = config('database.default');
+            }
+            $arguments = config('database.drivers.' . $id, []);
         }
 
-        return new Mailer();
+        if (empty($arguments)) {
+            new RuntimeException('The ConnectionFactory could not create a connection instance.');
+        }
+
+        return new Connection($arguments);
     }
 
 }

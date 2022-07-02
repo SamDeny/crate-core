@@ -2,10 +2,10 @@
 
 namespace Crate\Core\Database\Drivers;
 
-use Crate\Core\Contracts\DatabaseDriver;
+use Crate\Core\Contracts\DriverContract;
 use Crate\Core\Database\Drivers\Orders\DriverRequestOrder;
 
-class PDO implements DatabaseDriver
+class PDO implements DriverContract
 {
     use DriverRequestOrder;
 

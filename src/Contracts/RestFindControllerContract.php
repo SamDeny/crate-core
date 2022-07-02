@@ -19,8 +19,9 @@ interface RestFindControllerContract
 {
 
     /**
-     * GET|POST /[route]/[identifier]
+     * GET|POST /[route]/find
      *
+     * @param Request $request
      * @return Response
      */
     public function find(Request $request): Response;
